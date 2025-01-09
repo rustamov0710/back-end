@@ -1,10 +1,12 @@
 const express = require('express');
 const cors = require('cors');
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// CORS middleware'ni ulash
+// Middleware'larni ulash
 app.use(cors());
+app.use(express.json()); // JSON ma'lumotlarni tahlil qilish uchun
 
 // Mahsulotlar ro'yxati
 const products = [
@@ -109,22 +111,29 @@ const products = [
     { id: 99, name: "Suv shirin", price: 2000, amount: "6", category: "ichimliklar" },
     { id: 100, name: "Shirin tvorog", price: 10000, amount: "1", category: "sutli mahsulotlar" },
   ];
-  
 
 // API yo'llari
 // Barcha mahsulotlarni qaytarish
 app.get('/products', (req, res) => {
-    res.json(products);
+    res.status(200).json(products);
 });
 
 // Ma'lum mahsulotni ID bo'yicha qaytarish
 app.get('/products/:id', (req, res) => {
-    const product = products.find(p => p.id === parseInt(req.params.id));
+    const productId = parseInt(req.params.id);
+    const product = products.find(p => p.id === productId);
+
     if (product) {
-        res.json(product);
+        res.status(200).json(product);
     } else {
-        res.status(404).send({ error: "Mahsulot topilmadi" });
+        res.status(404).json({ error: "Mahsulot topilmadi" });
     }
+});
+
+// Xatoliklar uchun global middleware (foydalanuvchiga qulayroq xabar ko'rsatish uchun)
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).json({ error: "Serverda xatolik yuz berdi" });
 });
 
 // Serverni ishga tushirish
